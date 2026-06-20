@@ -338,7 +338,12 @@
       display: flex;
       gap: 18px;
       align-items: flex-start;
-      transition: transform 0.3s ease, box-shadow 0.22s, border-color 0.22s;
+      opacity: 0;
+      transform: translateY(25px);
+      transition: opacity .6s ease,
+        transform .6s ease,
+        box-shadow .22s ease,
+        border-color .22s ease;
     }
     .cert-card.visible { opacity: 1; transform: translateY(0); }
     .cert-card:hover { box-shadow: var(--glow-c); border-color: var(--border-h); }
@@ -891,7 +896,7 @@
     'Unity Developer',
     'Godot Developer',
     'C++ Programmer',
-    'Graphics Programmer',
+    'Graphics Engineer',
     'AR/VR Developer',
     'Game Developer',
   ];
@@ -914,13 +919,22 @@
 
 /* -- SCROLL REVEAL -- */
 (function () {
+  const revealed = new WeakMap();
+
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
-      if (!e.isIntersecting) return;
-      /* Stagger siblings for grouped elements */
       const idx = Array.from(e.target.parentElement?.children || []).indexOf(e.target);
-      setTimeout(() => e.target.classList.add('visible'), Math.max(0, idx * 85));
-      obs.unobserve(e.target);
+
+      if (e.isIntersecting) {
+        const timer = setTimeout(() => {
+          e.target.classList.add('visible');
+        }, Math.max(0, idx * 85));
+        revealed.set(e.target, timer);
+      } else {
+        const timer = revealed.get(e.target);
+        if (timer) clearTimeout(timer);
+        e.target.classList.remove('visible');
+      }
     });
   }, { threshold: 0.12 });
 
