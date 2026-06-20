@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chirag Prajapati - Game Developer Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --bg:          #050508;
+      --bg-card:     #0d0d18;
+      --bg-section:  rgba(10,10,20,0.6);
+      --cyan:        #00f5d4;
+      --amber:       #ff6b35;
+      --purple:      #9d7ce8;
+      --text:        #ffffff;
+      --text-dim:    #d5d5d5;
+      --border:      rgba(0,245,212,0.10);
+      --border-h:    rgba(0,245,212,0.38);
+      --glow-c:      0 0 22px rgba(0,245,212,0.28);
+      --glow-a:      0 0 22px rgba(255,107,53,0.28);
+      --glow-p:      0 0 22px rgba(157,124,232,0.28);
+    }
+
+    .project-link {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .project-link:hover .project-card,
+    .project-link:hover .cert-card {
+      transform: translateY(-4px);
+      transition: 0.3s ease;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /*  CANVAS BACKGROUND  */
+    #bg-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
+    }
+
+    /* Subtle noise grain */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 1; opacity: 0.5;
+    }
+
+    /*  LAYOUT  */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 2; }
+    section    { padding: 110px 0; position: relative; z-index: 2; }
+
+    /*  NAV  */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      padding: 18px 40px;
+      display: flex; justify-content: space-between; align-items: center;
+      background: linear-gradient(to bottom, rgba(5,5,8,0.92) 0%, transparent 100%);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    nav.scrolled {
+      background: rgba(5,5,8,0.96);
+      border-color: var(--border);
+    }
+    .nav-logo {
+      font-family: 'Orbitron', monospace; font-weight: 900; font-size: 1.15rem;
+      color: var(--cyan); text-decoration: none; letter-spacing: 0.12em;
+    }
+    .nav-logo span { color: var(--amber); }
+    .nav-links { display: flex; gap: 30px; list-style: none; }
+    .nav-links a {
+      color: var(--text-dim); text-decoration: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      transition: color 0.2s; position: relative;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 1px; background: var(--cyan); transition: width 0.2s;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* Hamburger */
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; z-index: 210; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: var(--cyan); transition: 0.3s; border-radius: 2px; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /*  HERO  */
+    #hero {
+      min-height: 100vh; display: flex; align-items: center;
+      padding: 0; position: relative;
+    }
+    .hero-inner {
+      max-width: 1080px; margin: 0 auto; padding: 0 28px;
+      position: relative; z-index: 2;
+    }
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace; color: var(--cyan);
+      font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase;
+      margin-bottom: 22px;
+      opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
+    }
+    .hero-eyebrow span {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(0,245,212,0.06); border: 1px solid var(--border);
+      padding: 7px 18px; border-radius: 2px;
+    }
+    .hero-eyebrow span::before {
+      content: ''; display: inline-block;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--cyan); box-shadow: 0 0 8px var(--cyan);
+      animation: blink 2s infinite;
+    }
+    .hero-name {
+      font-family: 'Orbitron', monospace; font-weight: 900;
+      font-size: clamp(2.6rem, 7vw, 5.8rem); line-height: 1.04;
+      color: #f0f4ff; margin-bottom: 16px; letter-spacing: -0.01em;
+      opacity: 0; animation: fadeUp 0.8s 0.35s forwards;
+    }
+    .hero-name .line2 { color: var(--cyan); display: block; }
+    .hero-role {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(0.95rem, 2.4vw, 1.4rem);
+      color: var(--text-dim); margin-bottom: 30px; min-height: 2.2rem;
+      opacity: 0; animation: fadeUp 0.8s 0.5s forwards;
+    }
+    .hero-role .typed { color: var(--amber); }
+    .cursor {
+      display: inline-block; width: 2px; height: 1.1em;
+      background: var(--amber); margin-left: 3px;
+      vertical-align: middle; animation: blink 1s infinite;
+    }
+    .hero-desc {
+      max-width: 540px; color: var(--text-dim); font-size: 0.97rem;
+      line-height: 1.8; margin-bottom: 44px;
+      opacity: 0; animation: fadeUp 0.8s 0.65s forwards;
+    }
+    .hero-ctas {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.8s 0.8s forwards;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 30px; border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+      letter-spacing: 0.06em; text-decoration: none; text-transform: uppercase;
+      border: 1px solid transparent; cursor: pointer; transition: all 0.22s; font-weight: 500;
+    }
+    .btn-primary { background: var(--cyan); color: #050508; border-color: var(--cyan); font-weight: 700; }
+    .btn-primary:hover { box-shadow: var(--glow-c), 0 0 50px rgba(0,245,212,0.15); transform: translateY(-2px); }
+    .btn-secondary { background: transparent; color: var(--cyan); border-color: var(--border-h); }
+    .btn-secondary:hover { background: rgba(0,245,212,0.06); transform: translateY(-2px); }
+
+    /* Scroll hint */
+    .scroll-hint {
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      color: var(--text-dim); font-size: 0.68rem;
+      font-family: 'JetBrains Mono', monospace; letter-spacing: 0.15em;
+      text-transform: uppercase; z-index: 2;
+      opacity: 0; animation: fadeIn 1s 1.4s forwards;
+    }
+    .scroll-line {
+      width: 1px; height: 56px;
+      background: linear-gradient(to bottom, var(--cyan), transparent);
+    }
+
+    /*  SECTION HEADERS  */
+    .section-tag {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+      color: var(--cyan); letter-spacing: 0.18em; text-transform: uppercase;
+      margin-bottom: 10px;
+      opacity: 0; transform: translateY(18px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .section-tag.visible { opacity: 1; transform: translateY(0); }
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.7rem, 4vw, 2.6rem);
+      font-weight: 700; color: #f0f4ff; line-height: 1.1; margin-bottom: 56px;
+      opacity: 0; transform: translateY(18px);
+      transition: opacity 0.6s 0.1s, transform 0.6s 0.1s;
+    }
+    .section-title.visible { opacity: 1; transform: translateY(0); }
+    .accent { color: var(--cyan); }
+
+    /*  ABOUT  */
+    .about-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: start; }
+    .about-text p {
+      color: var(--text-dim); line-height: 1.82; margin-bottom: 18px; font-size: 0.96rem;
+      opacity: 0; transform: translateY(18px);
+      transition: opacity 0.55s, transform 0.55s;
+    }
+    .about-text p.visible { opacity: 1; transform: translateY(0); }
+    .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px;
+      padding: 26px 20px; text-align: center;
+      opacity: 0; transform: translateY(18px);
+      transition: opacity 0.55s, transform 0.55s, box-shadow 0.22s, border-color 0.22s;
+    }
+    .stat-card.visible { opacity: 1; transform: translateY(0); }
+    .stat-card:hover { box-shadow: var(--glow-c); border-color: var(--border-h); }
+    .stat-num {
+      font-family: 'Orbitron', monospace; font-size: 2rem;
+      font-weight: 900; color: var(--cyan);
+    }
+    .stat-label {
+      font-size: 0.72rem; color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
+      letter-spacing: 0.1em; margin-top: 5px;
+    }
+
+    /*  SKILLS  */
+    #skills { background: var(--bg-section); backdrop-filter: blur(4px); }
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px,1fr)); gap: 20px; }
+    .skill-category {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px;
+      padding: 26px 24px;
+      opacity: 0; transform: translateY(26px);
+      transition: opacity 0.5s, transform 0.5s, box-shadow 0.22s, border-color 0.22s;
+    }
+    .skill-category.visible { opacity: 1; transform: translateY(0); }
+    .skill-category:hover { box-shadow: var(--glow-c); border-color: var(--border-h); }
+    .skill-cat-title {
+      font-family: 'Orbitron', monospace; font-size: 0.68rem;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber);
+      margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .skill-cat-title::before { content: ''; display: inline-block; width: 16px; height: 1px; background: var(--amber); }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+    .skill-tag {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+      padding: 5px 13px; border-radius: 2px; border: 1px solid var(--border);
+      color: var(--text); background: rgba(0,245,212,0.03); transition: all 0.2s; cursor: default;
+    }
+    .skill-tag:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,245,212,0.07); box-shadow: 0 0 10px rgba(0,245,212,0.12); }
+
+    /*  PROJECTS  */
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 20px; }
+    .project-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px;
+      padding: 26px 24px; position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(26px);
+      transition: opacity 0.5s, transform 0.5s, box-shadow 0.22s, border-color 0.22s;
+    }
+    .project-card::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%; opacity: 0; transition: opacity 0.22s;
+    }
+    .project-card.c-cyan::before  { background: var(--cyan);   }
+    .project-card.c-amber::before { background: var(--amber);  }
+    .project-card.c-purple::before{ background: var(--purple); }
+    .project-card.visible { opacity: 1; transform: translateY(0); }
+    .project-card:hover::before { opacity: 1; }
+    .project-card.c-cyan:hover  { box-shadow: var(--glow-c); border-color: var(--border-h); }
+    .project-card.c-amber:hover { box-shadow: var(--glow-a); border-color: rgba(255,107,53,0.38); }
+    .project-card.c-purple:hover{ box-shadow: var(--glow-p); border-color: rgba(157,124,232,0.38); }
+
+    .project-badge {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 11px; border-radius: 2px; display: inline-block; margin-bottom: 13px;
+    }
+    .badge-orig   { color: var(--cyan);   background: rgba(0,245,212,0.07);  border: 1px solid rgba(0,245,212,0.18); }
+    .badge-learn  { color: var(--amber);  background: rgba(255,107,53,0.07); border: 1px solid rgba(255,107,53,0.18); }
+
+    .project-title { font-family: 'Orbitron', monospace; font-size: 0.97rem; font-weight: 700; color: #f0f4ff; margin-bottom: 5px; }
+    .project-platform { font-family: 'JetBrains Mono', monospace; font-size: 0.69rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .project-desc { font-size: 0.87rem; color: var(--text-dim); line-height: 1.68; }
+    .project-tech { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 15px; }
+    .tech-pill {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+      padding: 3px 10px; background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 2px; color: var(--text-dim);
+    }
+
+    /*  EXPERIENCE  */
+    #experience { background: var(--bg-section); backdrop-filter: blur(4px); }
+    .timeline { position: relative; padding-left: 44px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 6px; top: 10px; bottom: 10px;
+      width: 1px; background: linear-gradient(to bottom, var(--cyan), rgba(0,245,212,0.08));
+    }
+    .timeline-item {
+      position: relative; margin-bottom: 48px;
+      opacity: 0; transform: translateX(-20px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .timeline-item.visible { opacity: 1; transform: translateX(0); }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .tl-dot {
+      position: absolute; left: -50px; top: 6px;
+      width: 13px; height: 13px; border-radius: 50%;
+      background: var(--cyan); border: 2px solid var(--bg);
+      box-shadow: 0 0 14px rgba(0,245,212,0.7);
+    }
+    .tl-date { font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; color: var(--cyan); letter-spacing: 0.08em; margin-bottom: 6px; }
+    .tl-company { font-family: 'Orbitron', monospace; font-size: 1.05rem; font-weight: 700; color: #f0f4ff; margin-bottom: 3px; }
+    .tl-role { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--amber); margin-bottom: 12px; }
+    .tl-desc {
+      font-size: 0.88rem; color: var(--text-dim); line-height: 1.72;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 4px; padding: 18px 20px;
+    }
+
+    /*  CERTIFICATIONS  */
+    .certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px,1fr)); gap: 20px; }
+    .cert-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 26px 24px;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      transition: transform 0.3s ease, box-shadow 0.22s, border-color 0.22s;
+    }
+    .cert-card.visible { opacity: 1; transform: translateY(0); }
+    .cert-card:hover { box-shadow: var(--glow-c); border-color: var(--border-h); }
+    .cert-icon {
+      width: 46px; height: 46px; flex-shrink: 0;
+      background: rgba(0,245,212,0.09); border: 1px solid var(--border-h);
+      border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .cert-title  { font-family: 'Orbitron', monospace; font-size: 0.88rem; font-weight: 700; color: #f0f4ff; margin-bottom: 5px; }
+    .cert-issuer { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 9px; }
+    .cert-pill {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      color: var(--cyan); background: rgba(0,245,212,0.08);
+      border: 1px solid rgba(0,245,212,0.2); padding: 3px 11px; border-radius: 2px;
+      display: inline-block;
+    }
+
+    /*  FOOTER  */
+    footer {
+      border-top: 1px solid var(--border); padding: 56px 0 40px;
+      position: relative; z-index: 2; text-align: center;
+    }
+    .footer-logo {
+      font-family: 'Orbitron', monospace; font-weight: 900; font-size: 1.3rem;
+      color: var(--cyan); margin-bottom: 22px;
+    }
+    .footer-links { display: flex; justify-content: center; gap: 28px; margin-bottom: 28px; flex-wrap: wrap; }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.76rem;
+      letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--cyan); }
+    .footer-copy { color: var(--text-dim); font-size: 0.76rem; font-family: 'JetBrains Mono', monospace; }
+
+    /*  KEYFRAMES  */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes blink  { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+    /*  REDUCED MOTION  */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      #bg-canvas { display: none; }
+    }
+
+    /*  RESPONSIVE  */
+    @media (max-width: 768px) {
+      nav { padding: 16px 22px; }
+      .nav-links {
+        display: none; flex-direction: column;
+        position: fixed; top: 0; right: 0; height: 100vh; width: 260px;
+        background: rgba(5,5,8,0.98); padding: 80px 32px 32px;
+        gap: 26px; border-left: 1px solid var(--border);
+        z-index: 200;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a { font-size: 0.95rem; }
+      .hamburger { display: flex; }
+      .about-grid { grid-template-columns: 1fr; gap: 40px; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .skills-grid   { grid-template-columns: 1fr; }
+      section { padding: 72px 0; }
+      .section-title { margin-bottom: 40px; }
+    }
+    @media (max-width: 480px) {
+      .hero-ctas { flex-direction: column; }
+      .about-stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- THREE.JS CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!--  NAV  -->
+<nav id="main-nav">
+  <a class="nav-logo" href="#hero">CYP<span>.</span>bhai</a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#about"      onclick="closeMenu()">About</a></li>
+    <li><a href="#skills"     onclick="closeMenu()">Skills</a></li>
+    <li><a href="#projects"   onclick="closeMenu()">Projects</a></li>
+    <li><a href="#experience" onclick="closeMenu()">Experience</a></li>
+    <li><a href="#certs"      onclick="closeMenu()">Certs</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!--  HERO  -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow"><span>Available for Work &amp; Collaboration</span></div>
+
+    <h1 class="hero-name">
+      CHIRAG
+      <span class="line2">PRAJAPATI</span>
+    </h1>
+
+    <div class="hero-role">
+      <span class="typed" id="typed-text"></span><span class="cursor"></span>
+    </div>
+
+    <p class="hero-desc">
+      Computer Science &amp; Engineering student at GSFC University, Vadodara (Class of 2026),
+      building real-time 3D experiences with Unity, Godot, C++, and Modern OpenGL.
+      Currently deepening expertise in 3D Mathematics and AR/VR development.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="#projects" class="btn btn-primary">View Projects</a>
+      <a href="https://github.com/CYPbhai" target="_blank" rel="noopener" class="btn btn-secondary">GitHub ↗</a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!--  ABOUT  -->
+<section id="about">
+  <div class="container">
+    <p class="section-tag">// 01 - Who I Am</p>
+    <h2 class="section-title">About <span class="accent">Me</span></h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>I'm a game developer and CS Engineering student with a passion for the intersection of mathematics and real-time graphics. I work across the full stack of game development - from engine-level C++ programming to polished Unity experiences.</p>
+        <p>Experienced with Unity (C#), Godot (GDScript), C++/SFML, and LOVE2D (Lua) across a range of shipped projects - from AI-driven chess to AR educational applications for students.</p>
+        <p>Currently deepening my expertise in Modern OpenGL, Data Structures &amp; Algorithms, and advanced 3D Mathematics. I believe great games are built on great fundamentals.</p>
+      </div>
+      <div class="about-stats">
+        <div class="stat-card"><div class="stat-num">10+</div><div class="stat-label">Projects Built</div></div>
+        <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Game Engines</div></div>
+        <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Internships</div></div>
+        <div class="stat-card"><div class="stat-num">86%</div><div class="stat-label">NPTEL Topper</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--  SKILLS  -->
+<section id="skills">
+  <div class="container">
+    <p class="section-tag">// 02 - Tech Stack</p>
+    <h2 class="section-title">Skills &amp; <span class="accent">Tools</span></h2>
+    <div class="skills-grid">
+      <div class="skill-category">
+        <div class="skill-cat-title">Languages</div>
+        <div class="skill-tags">
+          <span class="skill-tag">C++</span>
+          <span class="skill-tag">C#</span>
+          <span class="skill-tag">Lua</span>
+          <span class="skill-tag">GDScript</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">Game Engines</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Unity</span>
+          <span class="skill-tag">Godot</span>
+          <span class="skill-tag">LOVE2D</span>
+          <span class="skill-tag">Unreal (Learning)</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">Graphics &amp; Rendering</div>
+        <div class="skill-tags">
+          <span class="skill-tag">OpenGL</span>
+          <span class="skill-tag">SFML</span>
+          <span class="skill-tag">GLFW</span>
+          <span class="skill-tag">Dear ImGui</span>
+          <span class="skill-tag">Shaders</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">Math &amp; Algorithms</div>
+        <div class="skill-tags">
+          <span class="skill-tag">3D Mathematics</span>
+          <span class="skill-tag">Linear Algebra</span>
+          <span class="skill-tag">DSA</span>
+          <span class="skill-tag">Physics Simulation</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">AR / VR</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Unity AR</span>
+          <span class="skill-tag">Unity VR</span>
+          <span class="skill-tag">Vuforia Engine</span>
+          <span class="skill-tag">VRIF</span>
+        </div>
+      </div>
+      <div class="skill-category">
+        <div class="skill-cat-title">Tools &amp; Libraries</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Blender</span>
+          <span class="skill-tag">Git</span>
+          <span class="skill-tag">OpenCV</span>
+          <span class="skill-tag">GitHub</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--  PROJECTS  -->
+<section id="projects">
+  <div class="container">
+    <p class="section-tag">// 03 - What I've Built</p>
+    <h2 class="section-title">Project <span class="accent">Portfolio</span></h2>
+    <div class="projects-grid">
+
+      <!-- ORIGINAL -->
+      <a class="project-link" href="https://github.com/CYPbhai/Chess.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-cyan">
+          <span class="project-badge badge-orig">Original</span>
+          <h3 class="project-title">Chess 3D</h3>
+          <div class="project-platform">🪟 Windows</div>
+          <p class="project-desc">A fully functional 3D chess game built in Unity with an AI opponent powered by reinforcement learning. Complete board, piece logic, and smart AI in a polished 3D environment.</p>
+          <div class="project-tech">
+            <span class="tech-pill">Unity</span><span class="tech-pill">C#</span><span class="tech-pill">AI / RL</span><span class="tech-pill">3D</span>
+          </div>
+        </div>
+      </a>
+      
+      <a class="project-link" href="https://github.com/CYPbhai/Air-Hockey.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-amber">
+          <span class="project-badge badge-orig">Original</span>
+          <h3 class="project-title">AIR HOCKEY</h3>
+          <div class="project-platform">📱 Android</div>
+          <p class="project-desc">A 2.5D air hockey game for Android built in Unity (C#) with physics-based puck and paddle dynamics - responsive touch controls and smooth collision feel.</p>
+          <div class="project-tech">
+            <span class="tech-pill">Unity</span><span class="tech-pill">C#</span><span class="tech-pill">Android</span><span class="tech-pill">Physics</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="project-link" href="https://github.com/CYPbhai/Geometry-Wars.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-cyan">
+          <span class="project-badge badge-orig">Original</span>
+          <h3 class="project-title">Geometry Wars</h3>
+          <div class="project-platform">🪟 Windows</div>
+          <p class="project-desc">A Geometry Wars-inspired arcade twin-stick shooter built from scratch in C++ with SFML 3.0.2. Geometric enemies split into smaller pieces on death; survive as long as possible.</p>
+          <div class="project-tech">
+            <span class="tech-pill">C++</span><span class="tech-pill">SFML 3.0</span><span class="tech-pill">ECS</span>
+          </div>
+        </div>
+      </a>
+      
+      <a class="project-link" href="https://github.com/CYPbhai/Document-Scanner-using-OpenCV.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-cyan">
+          <span class="project-badge badge-orig">Original</span>
+          <h3 class="project-title">Document Scanner (CamScanner-type)</h3>
+          <div class="project-platform">🪟 Windows</div>
+          <p class="project-desc">Desktop app in C++ using OpenCV &amp; Dear ImGui rendered over GLFW/OpenGL. Auto-detects documents via adaptive Canny edge detection, corrects perspective to A4, exports B&amp;W or color scans.</p>
+          <div class="project-tech">
+            <span class="tech-pill">C++</span><span class="tech-pill">OpenCV</span><span class="tech-pill">OpenGL</span><span class="tech-pill">ImGui</span><span class="tech-pill">GLFW</span>
+          </div>
+        </div>
+      </a>
+      
+      <a class="project-link" href="https://github.com/CYPbhai/Disk_Management_Simulator.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-cyan">
+          <span class="project-badge badge-orig">Original</span>
+          <h3 class="project-title">Disk Management Simulator</h3>
+          <div class="project-platform">🪟 Windows</div>
+          <p class="project-desc">A C++ disk management simulator using a linked-list file allocation system. Supports save, delete, and disk compaction operations - demonstrating low-level memory management concepts.</p>
+          <div class="project-tech">
+            <span class="tech-pill">C++</span><span class="tech-pill">Data Structures</span><span class="tech-pill">Linked List</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="project-link" href="https://github.com/CYPbhai/Indexed-File-Database-Management-System-with-Cpp-Templates.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-cyan">
+          <span class="project-badge badge-orig">Original</span>
+          <h3 class="project-title">Indexed File Database (C++ Templates)</h3>
+          <div class="project-platform">🪟 Windows</div>
+          <p class="project-desc">Template-based C++ database engine storing records in a binary file with an in-memory vector index - efficient retrieval, sorting, and manipulation without loading the full dataset.</p>
+          <div class="project-tech">
+            <span class="tech-pill">C++</span><span class="tech-pill">Templates</span><span class="tech-pill">Binary I/O</span><span class="tech-pill">Indexing</span>
+          </div>
+        </div>
+      </a>
+      
+      <a class="project-link" href="https://github.com/CYPbhai/Dam.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-purple">
+          <span class="project-badge badge-orig">Original</span>
+          <h3 class="project-title">DAM Simulator</h3>
+          <div class="project-platform">🪟 Windows | 🥽 AR/VR</div>
+          <p class="project-desc">An immersive water dam simulator built as a university AR/VR project. Visualizes dam operations and water dynamics in a real-time virtual environment using Unity.</p>
+          <div class="project-tech">
+            <span class="tech-pill">Unity</span><span class="tech-pill">C#</span><span class="tech-pill">AR/VR</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- LEARNING -->
+       
+      <a class="project-link" href="https://github.com/CYPbhai/Kitchen-Chaos.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-cyan">
+          <span class="project-badge badge-learn">Learning</span>
+          <h3 class="project-title">Kitchen Chaos</h3>
+          <div class="project-platform">🪟 Windows</div>
+          <p class="project-desc">A cooking game built with Unity following Code Monkey's tutorial - cook burgers and salads before the delivery counter runs out, with additional custom mechanics layered on top.</p>
+          <div class="project-tech">
+            <span class="tech-pill">Unity</span><span class="tech-pill">C#</span><span class="tech-pill">Code Monkey</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="project-link" href="https://github.com/CYPbhai/Flappy-Bird.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-cyan">
+          <span class="project-badge badge-learn">Learning</span>
+          <h3 class="project-title">Breakout · Flappy Bird · PONG</h3>
+          <div class="project-platform">🪟 Windows</div>
+          <p class="project-desc">Three classic arcade games rebuilt in LÖVE 2D with Lua, following Harvard CS50's Introduction to Game Development. Covers collision, state machines, animation, and audio.</p>
+          <div class="project-tech">
+            <span class="tech-pill">LOVE2D</span><span class="tech-pill">Lua</span><span class="tech-pill">CS50</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="project-link" href="https://github.com/CYPbhai/Snake-Game-Android.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-amber">
+          <span class="project-badge badge-learn">Learning</span>
+          <h3 class="project-title">Snake Game</h3>
+          <div class="project-platform">📱 Android</div>
+          <p class="project-desc">Android Snake game developed in Unity following XAMK Open University's "Introduction to Game Development" online course - grid movement, growing tail, collision logic.</p>
+          <div class="project-tech">
+            <span class="tech-pill">Unity</span><span class="tech-pill">C#</span><span class="tech-pill">Android</span><span class="tech-pill">XAMK</span>
+          </div>
+        </div>
+      </a>
+
+      <a class="project-link" href="https://drive.google.com/drive/folders/1UjfOKpKJdD-5mTV8T-WPcn9Iof7ONR3r" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-purple">
+          <span class="project-badge badge-learn">Learning</span>
+          <h3 class="project-title">3D Software Portfolio</h3>
+          <div class="project-platform">🚫 None</div>
+          <p class="project-desc">3D Modeling : Donuts, Low Poly Well, Space Shuttle, Stylish Building, Ten objects</p>
+          <p class="project-desc">3D Animation : Star Wars, Donuts, Low Poly Well</p>
+          <div class="project-tech">
+            <span class="tech-pill">Unreal Engine</span><span class="tech-pill">Blender</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!--  EXPERIENCE  -->
+<section id="experience">
+  <div class="container">
+    <p class="section-tag">// 04 - Work History</p>
+    <h2 class="section-title">Professional <span class="accent">Experience</span></h2>
+    <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="tl-dot"></div>
+          <a class="project-link" href="https://drive.google.com/file/d/12smtMvji4pzFTABh0_NYsO7T2DyQcdYr/view" target="_blank" rel="noopener noreferrer">
+            <div class="project-card c-amber">
+              <div class="tl-date">Sep 2025 - Mar 2026</div>
+              <div class="tl-company">Exposit AR VR</div>
+              <div class="tl-role">AR/VR Unity Developer - 7-Month Internship</div>
+              <div class="tl-desc">Developed four AR educational applications using Vuforia Engine and one training VR simulator using VRIF. Delivered immersive, interactive learning experiences for educational institutions.</div>
+            </div>
+          </a>
+        </div>
+
+        <div class="timeline-item">
+          <div class="tl-dot"></div>
+          <a class="project-link" href="https://drive.google.com/file/d/1Mt7h74tFFdVDP2Ie2g6PIOU3YhJP68er/view" target="_blank" rel="noopener noreferrer">
+          <div class="project-card c-purple">
+            <div class="tl-date">Jun 2025</div>
+            <div class="tl-company">Exposit AR VR</div>
+            <div class="tl-role">VR Unity Developer - 1-Month Internship</div>
+            <div class="tl-desc">Built a med-kit VR training simulator during the internship period, gaining hands-on experience in virtual reality development for professional training applications.</div>
+          </div>  
+        </a>      
+        </div>
+
+      <div class="timeline-item">
+        <div class="tl-dot"></div>
+        <a class="project-link" href="https://drive.google.com/file/d/1HHFd0ac3QlE8hSjSlqRd-9kx_shjt2rC/view" target="_blank" rel="noopener noreferrer">
+            <div class="project-card c-cyan">
+            <div class="tl-date">Dec 2024</div>
+            <div class="tl-company">Galanto Innovations</div>
+            <div class="tl-role">Unity Game Developer - 1-Month Internship</div>
+            <div class="tl-desc">Designed and developed two mobile games for kids using Unity during the internship period, focusing on engaging gameplay mechanics and age-appropriate UX.</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--  CERTIFICATIONS  -->
+<section id="certs">
+  <div class="container">
+    <p class="section-tag">// 05 - Credentials</p>
+    <h2 class="section-title">Certifi<span class="accent">cations</span></h2>
+    <div class="certs-grid">
+
+    <a class="project-link" href="https://archive.nptel.ac.in/content/noc/NOC24/SEM2/Ecertificates/106/noc24-cs82/Course/NPTEL24CS82S33100004002613007.pdf" target="_blank" rel="noopener noreferrer">
+      <div class="cert-card">
+        <div class="cert-icon">🏆</div>
+        <div>
+          <div class="cert-title">NPTEL - Computer Graphics</div>
+          <div class="cert-issuer">IIT / NPTEL Online Learning Platform</div>
+          <span class="cert-pill">86% Score - Topper</span>
+        </div>
+      </div>
+    </a>
+
+    <a class="project-link" href="https://drive.google.com/file/d/1D55N0yNGZN04K8OfuLAqRlCuynoFaBsk/view" target="_blank" rel="noopener noreferrer">
+      <div class="cert-card">
+        <div class="cert-icon">🎓</div>
+        <div>
+          <div class="cert-title">IVGC - Introduction to Video Game Creation</div>
+          <div class="cert-issuer">XAMK - South-Eastern Finland University of Applied Sciences</div>
+          <span class="cert-pill">International Certificate</span>
+        </div>
+      </div>
+    </a>
+    </div>
+  </div>
+</section>
+
+<!--  FOOTER  -->
+<footer>
+  <div class="container">
+    <div class="footer-logo">GAME<span style="color:var(--amber)">.</span>DEV</div>
+    <div class="footer-links">
+      <a href="#hero">Top</a>
+      <!-- ⚠️ CHANGE: Update these links -->
+      <a href="https://github.com/CYPbhai" target="_blank" rel="noopener">GitHub</a>
+      <a href="mailto:cyp29122003@gmail.com">Email</a>
+      <a href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+    <div class="footer-copy">© 2026 Chirag Prajapati · Built with Three.js + Pure HTML/CSS</div>
+  </div>
+</footer>
+
+<!--  SCRIPTS  -->
+<script>
+/* -- THREE.JS ANIMATED BACKGROUND -- */
+(function () {
+  const canvas   = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 32);
+
+  /* Materials */
+  const matC = new THREE.MeshBasicMaterial({ color: 0x00f5d4, wireframe: true, transparent: true, opacity: 0.16 });
+  const matA = new THREE.MeshBasicMaterial({ color: 0xff6b35, wireframe: true, transparent: true, opacity: 0.12 });
+  const matP = new THREE.MeshBasicMaterial({ color: 0x9d7ce8, wireframe: true, transparent: true, opacity: 0.11 });
+
+  /* Add wireframe shape helper */
+  const shapes = [];
+  function addShape(geo, mat, x, y, z) {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.userData.rx = (Math.random() - 0.5) * 0.005;
+    m.userData.ry = (Math.random() - 0.5) * 0.007;
+    m.userData.rz = (Math.random() - 0.5) * 0.004;
+    m.userData.fo = Math.random() * Math.PI * 2;
+    m.userData.fs = 0.0006 + Math.random() * 0.0008;
+    scene.add(m);
+    shapes.push(m);
+  }
+
+  /* Icosahedra - main hero shapes */
+  addShape(new THREE.IcosahedronGeometry(5.2, 1), matC,  14,  2, -6);
+  addShape(new THREE.IcosahedronGeometry(2.0, 0), matC, -13, -7, -5);
+  addShape(new THREE.IcosahedronGeometry(1.3, 0), matC,  22,  9, -18);
+  /* Octahedra */
+  addShape(new THREE.OctahedronGeometry(3.2),     matA, -17,  7, -9);
+  addShape(new THREE.OctahedronGeometry(1.6),     matA,   9, 13, -13);
+  addShape(new THREE.OctahedronGeometry(1.0),     matA, -21, -3, -16);
+  /* Tetrahedra */
+  addShape(new THREE.TetrahedronGeometry(2.6),    matP,  19, -9, -11);
+  addShape(new THREE.TetrahedronGeometry(1.8),    matP,  -6, 11, -15);
+
+  /* Particle field */
+  const N   = 700;
+  const pos = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    pos[i*3]   = (Math.random() - 0.5) * 130;
+    pos[i*3+1] = (Math.random() - 0.5) * 90;
+    pos[i*3+2] = (Math.random() - 0.5) * 70 - 12;
+  }
+  const pg  = new THREE.BufferGeometry();
+  pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const pm  = new THREE.PointsMaterial({ color: 0x00f5d4, size: 0.11, transparent: true, opacity: 0.45 });
+  const pts = new THREE.Points(pg, pm);
+  scene.add(pts);
+
+  /* Mouse parallax */
+  const mouse  = { x: 0, y: 0 };
+  const smooth = { x: 0, y: 0 };
+  window.addEventListener('mousemove', e => {
+    mouse.x =  (e.clientX / window.innerWidth  - 0.5) * 2;
+    mouse.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  /* Resize */
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  /* Animation loop */
+  let t = 0;
+  function tick() {
+    requestAnimationFrame(tick);
+    t += 0.008;
+
+    smooth.x += (mouse.x - smooth.x) * 0.035;
+    smooth.y += (mouse.y - smooth.y) * 0.035;
+    camera.position.x = smooth.x * 2.8;
+    camera.position.y = smooth.y * 1.8;
+    camera.lookAt(0, 0, 0);
+
+    shapes.forEach(m => {
+      m.rotation.x += m.userData.rx;
+      m.rotation.y += m.userData.ry;
+      m.rotation.z += m.userData.rz;
+      m.position.y += Math.sin(t * m.userData.fs * 100 + m.userData.fo) * 0.008;
+    });
+
+    pts.rotation.y += 0.00025;
+    renderer.render(scene, camera);
+  }
+  tick();
+})();
+
+/* -- TYPING EFFECT -- */
+(function () {
+  const phrases = [
+    'Unity Developer',
+    'Godot Developer',
+    'C++ Programmer',
+    'OpenGL Engineer',
+    'AR/VR Developer',
+    'Game Developer',
+  ];
+  let pi = 0, ci = 0, del = false;
+  const el = document.getElementById('typed-text');
+
+  function tick() {
+    const p = phrases[pi];
+    if (!del) {
+      el.textContent = p.slice(0, ++ci);
+      if (ci === p.length) { del = true; setTimeout(tick, 1800); return; }
+    } else {
+      el.textContent = p.slice(0, --ci);
+      if (ci === 0) { del = false; pi = (pi + 1) % phrases.length; }
+    }
+    setTimeout(tick, del ? 48 : 82);
+  }
+  setTimeout(tick, 1200);
+})();
+
+/* -- SCROLL REVEAL -- */
+(function () {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      /* Stagger siblings for grouped elements */
+      const idx = Array.from(e.target.parentElement?.children || []).indexOf(e.target);
+      setTimeout(() => e.target.classList.add('visible'), Math.max(0, idx * 85));
+      obs.unobserve(e.target);
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll(
+    '.section-tag, .section-title, .about-text p, .stat-card, ' +
+    '.skill-category, .project-card, .timeline-item, .cert-card'
+  ).forEach(el => obs.observe(el));
+})();
+
+/* -- NAV SCROLL STATE -- */
+window.addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 50);
+}, { passive: true });
+
+/* -- HAMBURGER -- */
+function toggleMenu() {
+  const links = document.getElementById('nav-links');
+  const ham   = document.getElementById('hamburger');
+  links.classList.toggle('open');
+  ham.classList.toggle('open');
+}
+function closeMenu() {
+  document.getElementById('nav-links').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+}
+</script>
+</body>
+</html>
