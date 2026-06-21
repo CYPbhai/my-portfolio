@@ -380,6 +380,155 @@
     .footer-links a:hover { color: var(--cyan); }
     .footer-copy { color: var(--text-dim); font-size: 0.76rem; font-family: 'JetBrains Mono', monospace; }
 
+    /* Media strip at the top of each project card */
+    .project-media {
+      position: relative;
+      margin: -26px -24px 20px;
+      height: 175px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      border-radius: 4px 4px 0 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .22s;
+    }
+    .project-card.c-cyan   .project-media { background: linear-gradient(148deg,rgba(0,245,212,.08), rgba(5,5,8,1) 68%); }
+    .project-card.c-amber  .project-media { background: linear-gradient(148deg,rgba(255,107,53,.08),rgba(5,5,8,1) 68%); }
+    .project-card.c-purple .project-media { background: linear-gradient(148deg,rgba(157,124,232,.08),rgba(5,5,8,1) 68%); }
+    .project-card:hover .project-media    { border-color: var(--border-h); }
+
+    /* Ghost emoji when no screenshot */
+    .project-media::before {
+      content: attr(data-icon);
+      font-size: 3.6rem; opacity: .14;
+      user-select: none; pointer-events: none;
+    }
+    /* Dim helper text */
+    .placeholder-label {
+      position: absolute; bottom: 9px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: .6rem; color: rgba(255,255,255,.14);
+      letter-spacing: .18em; text-transform: uppercase;
+      user-select: none; pointer-events: none;
+    }
+    /* Actual screenshot */
+    .project-thumb {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      opacity: .88;
+      transition: transform .45s ease, opacity .3s;
+    }
+    .project-card:hover .project-thumb { transform: scale(1.04); opacity: 1; }
+
+    /* Video play button */
+    .play-btn {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%) scale(.85);
+      width: 50px; height: 50px; border-radius: 50%;
+      background: rgba(5,5,8,.7); border: 2px solid var(--cyan);
+      color: var(--cyan); font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding-left: 3px;
+      opacity: 0; z-index: 4;
+      transition: opacity .22s, transform .22s, background .22s, box-shadow .22s;
+    }
+    .project-media:hover .play-btn              { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    .play-btn:hover {
+      background: rgba(0,245,212,.22);
+      box-shadow: 0 0 30px rgba(0,245,212,.48);
+      transform: translate(-50%,-50%) scale(1.1) !important;
+    }
+
+    /*  3-D Render Gallery ── */
+    .gallery-video {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      cursor: pointer;
+      overflow: hidden;
+      border-radius: 3px;
+    }
+
+    .gallery-video .gallery-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-video:hover .play-btn {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .model-gallery {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 7px; margin: 14px 0 8px;
+    }
+    .gallery-thumb {
+      width: 100%; aspect-ratio: 4/3;
+      object-fit: cover; border-radius: 3px;
+      border: 1px solid var(--border);
+      cursor: pointer; display: block;
+      transition: border-color .22s, transform .28s, box-shadow .22s;
+    }
+    .gallery-thumb:hover { border-color: var(--purple); transform: scale(1.05); box-shadow: var(--glow-p); }
+
+    .gallery-placeholder {
+      width: 100%; aspect-ratio: 4/3; border-radius: 3px;
+      border: 1px dashed rgba(157,124,232,.28);
+      background: rgba(157,124,232,.04);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 6px;
+      cursor: pointer;
+      transition: border-color .22s, background .22s;
+    }
+    .gallery-placeholder:hover { border-color: rgba(157,124,232,.5); background: rgba(157,124,232,.09); }
+    .gallery-placeholder::before { content: "🖼"; font-size: 1.4rem; opacity: .3; }
+    .gallery-placeholder::after {
+      content: attr(data-label);
+      font-family: "JetBrains Mono", monospace;
+      font-size: .57rem; color: rgba(255,255,255,.22);
+      letter-spacing: .08em; text-transform: uppercase; text-align: center; padding: 0 5px;
+    }
+    /* Wide 3-D portfolio card spans full grid */
+    .project-link:has(.project-card-wide) { grid-column: 1 / -1; }
+    .project-card-wide .model-gallery     { grid-template-columns: repeat(6,1fr); }
+    @media (max-width: 768px) { .project-card-wide .model-gallery { grid-template-columns: repeat(3,1fr); } }
+
+    /*  Lightbox Modal  */
+    .media-modal {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(5,5,8,.93); backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .28s;
+    }
+    .media-modal.open { opacity: 1; pointer-events: all; }
+    .modal-wrap { position: relative; width: min(92vw, 900px); }
+    .modal-video {
+      position: relative; width: 100%; padding-top: 56.25%;
+      background: #000;
+      border: 1px solid var(--border-h); border-radius: 5px; overflow: hidden;
+      box-shadow: 0 0 70px rgba(0,245,212,.14);
+    }
+    .modal-video iframe, .modal-video video {
+      position: absolute; inset: 0; width: 100%; height: 100%; border: none;
+    }
+    .modal-img-wrap {
+      border: 1px solid var(--border-h); border-radius: 5px; overflow: hidden;
+      box-shadow: 0 0 70px rgba(0,245,212,.14);
+      display: flex; align-items: center; justify-content: center; max-height: 88vh;
+    }
+    .modal-img-wrap img { max-width: 100%; max-height: 88vh; object-fit: contain; display: block; }
+    .modal-close-btn {
+      position: absolute; top: -46px; right: 0;
+      background: none; border: 1px solid var(--border-h);
+      color: var(--cyan);
+      font-family: "JetBrains Mono", monospace; font-size: .75rem; letter-spacing: .08em;
+      padding: 7px 18px; border-radius: 3px; cursor: pointer;
+      transition: background .2s, box-shadow .2s;
+    }
+    .modal-close-btn:hover { background: rgba(0,245,212,.1); box-shadow: var(--glow-c); }
+
     /*  KEYFRAMES  */
     @keyframes fadeUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
@@ -562,6 +711,14 @@
       <!-- ORIGINAL -->
       <a class="project-link" href="https://github.com/CYPbhai/Chess.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-cyan">
+          <div class="project-media" data-icon="♟️">
+            <img src="images/chess3d.png" class="project-thumb" alt="Chess 3D Gameplay">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1x84yhX5WUjlmc1773GE4gfmpQ7APCfdk/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+            
+          </div>
           <span class="project-badge badge-orig">Original</span>
           <h3 class="project-title">Chess 3D</h3>
           <div class="project-platform">🪟 Windows</div>
@@ -574,6 +731,13 @@
       
       <a class="project-link" href="https://github.com/CYPbhai/Air-Hockey.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-amber">
+          <div class="project-media" data-icon="🏒">
+            <img src="images/airhockey.png" class="project-thumb" alt="Air Hockey Gameplay">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1KGvomoIHw5sF06cHBjUIulmSKLDJ7LO6/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
           <span class="project-badge badge-orig">Original</span>
           <h3 class="project-title">AIR HOCKEY</h3>
           <div class="project-platform">📱 Android</div>
@@ -586,6 +750,13 @@
 
       <a class="project-link" href="https://github.com/CYPbhai/Geometry-Wars.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-cyan">
+          <div class="project-media" data-icon="🔷">
+            <img src="images/geometry-wars.png" class="project-thumb" alt="Geometry Wars Gameplay">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1lda67AxK35VDhih4WepsL4uOmjdt0xiE/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
           <span class="project-badge badge-orig">Original</span>
           <h3 class="project-title">Geometry Wars</h3>
           <div class="project-platform">🪟 Windows</div>
@@ -598,6 +769,13 @@
       
       <a class="project-link" href="https://github.com/CYPbhai/Document-Scanner-using-OpenCV.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-cyan">
+          <div class="project-media" data-icon="📷">
+            <img src="images/docscanner.png" class="project-thumb" alt="Document Scanner">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1IVMrgQRB8c4_wpRFurlUGjxOo8cA-xJx/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
           <span class="project-badge badge-orig">Original</span>
           <h3 class="project-title">Document Scanner (CamScanner-type)</h3>
           <div class="project-platform">🪟 Windows</div>
@@ -610,6 +788,13 @@
       
       <a class="project-link" href="https://github.com/CYPbhai/Disk_Management_Simulator.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-cyan">
+          <div class="project-media" data-icon="💾">
+            <img src="images/disk.png" class="project-thumb" alt="Disk Simulator">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/187eoUxP_m5Mf41aEfezl4sijOj8Z-pYM/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
           <span class="project-badge badge-orig">Original</span>
           <h3 class="project-title">Disk Management Simulator</h3>
           <div class="project-platform">🪟 Windows</div>
@@ -622,6 +807,13 @@
 
       <a class="project-link" href="https://github.com/CYPbhai/Indexed-File-Database-Management-System-with-Cpp-Templates.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-cyan">
+          <div class="project-media" data-icon="🗄️">
+            <img src="images/IndexDBMS.png" class="project-thumb" alt="Indexed File DBMS">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1jlibwRC6pJuruu4gVWqUTEGTuADYsXiX/view?usp=sharing"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
           <span class="project-badge badge-orig">Original</span>
           <h3 class="project-title">Indexed File Database (C++ Templates)</h3>
           <div class="project-platform">🪟 Windows</div>
@@ -634,6 +826,13 @@
       
       <a class="project-link" href="https://github.com/CYPbhai/Dam.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-purple">
+          <div class="project-media" data-icon="🌊">
+            <img src="images/dam.png" class="project-thumb" alt="DAM AR/VR Simulator">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/129HmPn2veCjAZZCXQksqzYYUZE3HevWs/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
           <span class="project-badge badge-orig">Original</span>
           <h3 class="project-title">DAM Simulator</h3>
           <div class="project-platform">🪟 Windows | 🥽 AR/VR</div>
@@ -648,6 +847,13 @@
        
       <a class="project-link" href="https://github.com/CYPbhai/Kitchen-Chaos.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-cyan">
+          <div class="project-media" data-icon="🍳">
+            <img src="images/kitchen.png" class="project-thumb" alt="Kitchen Chaos Gameplay">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1ZrYoY02rtWWxMiGSWqYF1YPFHE13YBOm/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
           <span class="project-badge badge-learn">Learning</span>
           <h3 class="project-title">Kitchen Chaos</h3>
           <div class="project-platform">🪟 Windows</div>
@@ -660,8 +866,15 @@
 
       <a class="project-link" href="https://github.com/CYPbhai/Flappy-Bird.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-cyan">
+          <div class="project-media" data-icon="🎮">
+            <img src="images/flappybird.png" class="project-thumb" alt="Flappy-Bird Gameplay">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1C6-0I125kwZi5IHCO0uZ4kadiPbwd5hy/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
           <span class="project-badge badge-learn">Learning</span>
-          <h3 class="project-title">Breakout · Flappy Bird · PONG</h3>
+          <h3 class="project-title">Flappy Bird</h3>
           <div class="project-platform">🪟 Windows</div>
           <p class="project-desc">Three classic arcade games rebuilt in LÖVE 2D with Lua, following Harvard CS50's Introduction to Game Development. Covers collision, state machines, animation, and audio.</p>
           <div class="project-tech">
@@ -669,9 +882,51 @@
           </div>
         </div>
       </a>
-
+<a class="project-link" href="https://github.com/CYPbhai/breakout.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-cyan">
+          <div class="project-media" data-icon="🎮">
+            <img src="images/breakout.png" class="project-thumb" alt="Breakout Gameplay">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1Dy_4f7SvjgTwALKLlCQu7kIPEq8GSl4b/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
+          <span class="project-badge badge-learn">Learning</span>
+          <h3 class="project-title">Breakout</h3>
+          <div class="project-platform">🪟 Windows</div>
+          <p class="project-desc">Three classic arcade games rebuilt in LÖVE 2D with Lua, following Harvard CS50's Introduction to Game Development. Covers collision, state machines, animation, and audio.</p>
+          <div class="project-tech">
+            <span class="tech-pill">LOVE2D</span><span class="tech-pill">Lua</span><span class="tech-pill">CS50</span>
+          </div>
+        </div>
+      </a>
+      <a class="project-link" href="https://github.com/CYPbhai/pong.git" target="_blank" rel="noopener noreferrer">
+        <div class="project-card c-cyan">
+          <div class="project-media" data-icon="🎮">
+            <img src="images/pong.png" class="project-thumb" alt="PONG Gameplay">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1r5JnLzznszwLg4k1Vzy_su3HIJd7fybf/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
+          <span class="project-badge badge-learn">Learning</span>
+          <h3 class="project-title">PONG</h3>
+          <div class="project-platform">🪟 Windows</div>
+          <p class="project-desc">Three classic arcade games rebuilt in LÖVE 2D with Lua, following Harvard CS50's Introduction to Game Development. Covers collision, state machines, animation, and audio.</p>
+          <div class="project-tech">
+            <span class="tech-pill">LOVE2D</span><span class="tech-pill">Lua</span><span class="tech-pill">CS50</span>
+          </div>
+        </div>
+      </a>
       <a class="project-link" href="https://github.com/CYPbhai/Snake-Game-Android.git" target="_blank" rel="noopener noreferrer">
         <div class="project-card c-amber">
+          <div class="project-media" data-icon="🐍">
+            <img src="images/snake.png" class="project-thumb" alt="Snake Game Android">
+            <button class="play-btn"
+              data-src="https://drive.google.com/file/d/1WqcHSK1FlXJTgcToSt_CyERYNltijJt2/view?usp=drive_link"
+              data-type="video-drive"
+              onclick="event.preventDefault();event.stopPropagation();openModal(this.dataset.src,this.dataset.type)">&#9654;</button>
+          </div>
           <span class="project-badge badge-learn">Learning</span>
           <h3 class="project-title">Snake Game</h3>
           <div class="project-platform">📱 Android</div>
@@ -683,10 +938,43 @@
       </a>
 
       <a class="project-link" href="https://drive.google.com/drive/folders/1UjfOKpKJdD-5mTV8T-WPcn9Iof7ONR3r" target="_blank" rel="noopener noreferrer">
-        <div class="project-card c-purple">
+        <div class="project-card c-purple project-card-wide">
           <span class="project-badge badge-learn">Learning</span>
           <h3 class="project-title">3D Software Portfolio</h3>
-          <div class="project-platform">🚫 None</div>
+          <div class="project-platform">🎨 Blender · Unreal Engine</div>
+
+
+          <div class="model-gallery">
+
+            <div class="gallery-video" onclick="event.preventDefault();event.stopPropagation();openModal('https://drive.google.com/file/d/13zrrQ0KyuCncawHkFi5yDpwHZjsEzfQH/view?usp=drive_link','video-drive')">
+              <img src="images/Donuts.png" class="gallery-thumb" alt="Donuts">
+              <button class="play-btn" onclick="event.preventDefault();event.stopPropagation();openModal('https://drive.google.com/file/d/13zrrQ0KyuCncawHkFi5yDpwHZjsEzfQH/view?usp=drive_link','video-drive')">&#9654;</button>
+            </div>
+
+            <div class="gallery-video" onclick="event.preventDefault();event.stopPropagation();openModal('https://drive.google.com/file/d/1TiLvDfsFLfRdV4DHR-6c0TQxo5Xz3xnf/view?usp=drive_link','video-drive')">
+              <img src="images/well.png" class="gallery-thumb" alt="Lowpoly Well">
+              <button class="play-btn" onclick="event.preventDefault();event.stopPropagation();openModal('https://drive.google.com/file/d/1TiLvDfsFLfRdV4DHR-6c0TQxo5Xz3xnf/view?usp=drive_link','video-drive')">&#9654;</button>
+            </div>
+
+            <img src="images/spaceshuttle.png"
+                class="gallery-thumb" alt="Space Shuttle"
+                onclick="event.preventDefault();event.stopPropagation();openModal(this.src,'image')">
+
+            <img src="images/stylish_building.png"
+                class="gallery-thumb" alt="Stylish Building"
+                onclick="event.preventDefault();event.stopPropagation();openModal(this.src,'image')">
+
+            <div class="gallery-video" onclick="event.preventDefault();event.stopPropagation();openModal('https://drive.google.com/file/d/19E4KN5HZ9alkMnTEBKKbbPA9KlzNNfKx/view?usp=drive_link','video-drive')">
+              <img src="images/objects10.png" class="gallery-thumb" alt="Ten Objects">
+              <button class="play-btn" onclick="event.preventDefault();event.stopPropagation();openModal('https://drive.google.com/file/d/19E4KN5HZ9alkMnTEBKKbbPA9KlzNNfKx/view?usp=drive_link','video-drive')">&#9654;</button>
+            </div>
+
+            <div class="gallery-video" onclick="event.preventDefault();event.stopPropagation();openModal('https://drive.google.com/file/d/1tL2h8N-eq1m9tMs8EVnXXLpXrZoPR9yJ/view?usp=drive_link','video-drive')">
+              <img src="images/starwars.png" class="gallery-thumb" alt="Star Wars">
+              <button class="play-btn" onclick="event.preventDefault();event.stopPropagation();openModal('https://drive.google.com/file/d/1tL2h8N-eq1m9tMs8EVnXXLpXrZoPR9yJ/view?usp=drive_link','video-drive')">&#9654;</button>
+            </div>
+
+          </div>
           <p class="project-desc">3D Modeling : Donuts, Low Poly Well, Space Shuttle, Stylish Building, Ten objects</p>
           <p class="project-desc">3D Animation : Star Wars, Donuts, Low Poly Well</p>
           <div class="project-tech">
@@ -776,6 +1064,14 @@
   </div>
 </section>
 
+<!-- ══ MEDIA LIGHTBOX MODAL  -->
+<div id="media-modal" class="media-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-wrap">
+    <button class="modal-close-btn" onclick="closeModal()">&#10005;  Close</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
 <!--  FOOTER  -->
 <footer>
   <div class="container">
@@ -793,6 +1089,45 @@
 
 <!--  SCRIPTS  -->
 <script>
+/* -- MEDIA LIGHTBOX -- */
+(function () {
+  var modal   = document.getElementById('media-modal');
+  var content = document.getElementById('modal-content');
+
+  window.openModal = function (src, type) {
+    content.innerHTML = '';
+    var node = document.createElement('div');
+    if (type === 'video-yt') {
+      var m = src.match(/(?:youtu\.be\/|[?&]v=)([^?&#\/]+)/);
+      node.className = 'modal-video';
+      node.innerHTML = '<iframe src="https://www.youtube.com/embed/' + (m ? m[1] : '') +
+        '?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+    } else if (type === 'video-drive') {
+      var m2 = src.match(/\/d\/([^\/]+)/);
+      node.className = 'modal-video';
+      node.innerHTML = '<iframe src="https://drive.google.com/file/d/' + (m2 ? m2[1] : '') +
+        '/preview" allow="autoplay" allowfullscreen></iframe>';
+    } else if (type === 'video-mp4') {
+      node.className = 'modal-video';
+      node.innerHTML = '<video src="' + src + '" controls autoplay></video>';
+    } else {
+      node.className = 'modal-img-wrap';
+      node.innerHTML = '<img src="' + src + '" alt="Preview">';
+    }
+    content.appendChild(node);
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeModal = function () {
+    modal.classList.remove('open');
+    content.innerHTML = '';
+    document.body.style.overflow = '';
+  };
+
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+})();
+
 /* -- THREE.JS ANIMATED BACKGROUND -- */
 (function () {
   const canvas   = document.getElementById('bg-canvas');
