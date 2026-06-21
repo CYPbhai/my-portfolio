@@ -568,7 +568,7 @@
        TOUCH & MOBILE  IMPROVEMENTS
        ══════════════════════════════════════════════════════════ */
 
-    /* 1. Play buttons always visible on touch (no hover on mobile) */
+    /* ── Play buttons always visible on touch (no hover) ────── */
     @media (hover: none) {
       .project-media .play-btn {
         opacity: 0.88 !important;
@@ -593,43 +593,76 @@
       }
     }
 
-    /* 2. Modal on mobile — video fills screen from top down
-          (fixes the "video stuck at bottom" bug: switch from
-           align-items:center to flex-start + padding-top)    */
+    /* ── Modal on mobile ─────────────────────────────────────
+       KEY FIX:
+       • Keep align-items:center  →  video stays centered ✓
+       • Close button position:fixed  →  doesn't shift layout ✓
+       • No margin-top on modal-wrap  →  no "drift to bottom" ✓
+       • modal-video height:60vh  →  Drive player has room to
+         render the video without squishing it into a black box ✓ */
     @media (max-width: 640px) {
+      /* Modal stays centered — close btn is fixed so it doesn't
+         push the video down */
       .media-modal {
-        align-items: flex-start;
-        padding-top: 56px;
+        align-items: center;
       }
+
+      /* Close button: fixed top-right, completely outside the
+         flex layout so it cannot affect the video position */
       .modal-close-btn {
         position: fixed;
-        top: 10px; right: 10px;
+        top: 10px;
+        right: 10px;
         z-index: 510;
         padding: 10px 22px;
         min-height: 44px;
-        display: flex; align-items: center; justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: rgba(5,5,8,.96);
         font-size: .82rem;
       }
+
+      /* Wrapper fills full width, no extra margins */
       .modal-wrap {
         width: 100vw;
         padding: 0;
         margin-top: 0;
       }
+
+      /* Video container: use a real height instead of the
+         padding-top 16:9 trick.
+         60vh gives the Drive player enough room to show the
+         actual video without black padding around it */
       .modal-video {
+        padding-top: 0 !important;
+        height: 60vh;
         border-radius: 0;
-        border-left: none; border-right: none;
+        border-left:  none;
+        border-right: none;
         box-shadow: none;
       }
+
+      /* Iframe / video fill the explicit-height container */
+      .modal-video iframe,
+      .modal-video video {
+        position: absolute;
+        inset: 0;
+        width:  100%;
+        height: 100%;
+      }
+
+      /* Images: keep them within viewport */
       .modal-img-wrap     { max-height: 78vh; }
       .modal-img-wrap img { max-height: 78vh; }
     }
 
-    /* 3. Small phones */
+    /* ── Small phones (≤ 480 px) ─────────────────────────────── */
     @media (max-width: 480px) {
       .container { padding: 0 14px; }
       section    { padding: 58px 0; }
       .project-media { height: 148px; }
+      /* 3-D gallery: 2 columns so renders are readable */
       .project-card-wide .model-gallery { grid-template-columns: repeat(2,1fr) !important; }
       .section-title { margin-bottom: 28px; }
       .cert-card { padding: 18px 14px; gap: 12px; }
@@ -1200,24 +1233,17 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 })();
 
-/* -- THUMBNAIL CLICK  =  play video (same as ▶ button) -- */
+/* -- THUMBNAIL CLICK = play video (same as ▶ button) -- */
 document.addEventListener('click', function (e) {
-  /* Only care about clicks inside a .project-media strip */
   var media = e.target.closest('.project-media');
-  if (!media) return;
-
-  /* Play button already handles itself — don't double-fire */
-  if (e.target.closest('.play-btn')) return;
-
-  /* Cards with no video (no play btn) open the GitHub link normally */
+  if (!media) return;                        // not a media strip
+  if (e.target.closest('.play-btn')) return; // play btn handles itself
   var btn = media.querySelector('.play-btn');
-  if (!btn) return;
-
-  /* Has a video — open it, block the card link */
+  if (!btn) return;                          // no video on this card
   e.preventDefault();
   e.stopPropagation();
   openModal(btn.dataset.src, btn.dataset.type);
-}, true /* capture phase — intercepts before the <a> fires */);
+}, true);
 
 /* -- THREE.JS ANIMATED BACKGROUND -- */
 (function () {
