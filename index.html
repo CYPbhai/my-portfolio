@@ -568,10 +568,8 @@
        TOUCH & MOBILE  IMPROVEMENTS
        ══════════════════════════════════════════════════════════ */
 
-    /* ── 1. Play button always visible on touch devices ─────
-          (touch screens have no hover state at all)          */
+    /* 1. Play buttons always visible on touch (no hover on mobile) */
     @media (hover: none) {
-      /* Project-card play buttons (full-width cards) */
       .project-media .play-btn {
         opacity: 0.88 !important;
         transform: translate(-50%,-50%) scale(1) !important;
@@ -579,7 +577,6 @@
         width:  54px !important;
         height: 54px !important;
       }
-      /* Gallery-video play buttons (smaller cells) */
       .gallery-video .play-btn {
         opacity: 0.88 !important;
         transform: translate(-50%,-50%) scale(1) !important;
@@ -589,7 +586,6 @@
         font-size: .82rem !important;
         border-width: 1.5px !important;
       }
-      /* Active/pressed state instead of hover */
       .play-btn:active {
         background: rgba(0,245,212,.22) !important;
         box-shadow: 0 0 24px rgba(0,245,212,.45) !important;
@@ -597,58 +593,47 @@
       }
     }
 
-    /* ── 2. Modal — correct layout on phones ────────────────  */
+    /* 2. Modal on mobile — video fills screen from top down
+          (fixes the "video stuck at bottom" bug: switch from
+           align-items:center to flex-start + padding-top)    */
     @media (max-width: 640px) {
-      /* Close button: fixed top-right, always reachable      */
+      .media-modal {
+        align-items: flex-start;
+        padding-top: 56px;
+      }
       .modal-close-btn {
         position: fixed;
-        top: 12px;
-        right: 12px;
+        top: 10px; right: 10px;
         z-index: 510;
         padding: 10px 22px;
-        font-size: .82rem;
         min-height: 44px;
         display: flex; align-items: center; justify-content: center;
         background: rgba(5,5,8,.96);
-        border-color: var(--border-h);
+        font-size: .82rem;
       }
-      /* Video/image pushed down so close btn doesn't overlap */
       .modal-wrap {
         width: 100vw;
         padding: 0;
-        margin-top: 60px;
+        margin-top: 0;
       }
-      /* Video fills full width on phone */
       .modal-video {
-        border-left: none; border-right: none;
         border-radius: 0;
+        border-left: none; border-right: none;
         box-shadow: none;
       }
-      /* Image doesn't overflow the screen height */
-      .modal-img-wrap      { max-height: 75vh; }
-      .modal-img-wrap img  { max-height: 75vh; }
+      .modal-img-wrap     { max-height: 78vh; }
+      .modal-img-wrap img { max-height: 78vh; }
     }
 
-    /* ── 3. Extra-small phones (≤ 480 px) ───────────────────  */
+    /* 3. Small phones */
     @media (max-width: 480px) {
-      /* Tighter side padding on tiny screens */
       .container { padding: 0 14px; }
       section    { padding: 58px 0; }
-
-      /* Slightly shorter media strip to save vertical space */
       .project-media { height: 148px; }
-
-      /* 3-D gallery: 2 columns on phone so renders are readable */
       .project-card-wide .model-gallery { grid-template-columns: repeat(2,1fr) !important; }
-
-      /* Section heading spacing */
       .section-title { margin-bottom: 28px; }
-
-      /* Cert cards — tighter on phone */
       .cert-card { padding: 18px 14px; gap: 12px; }
-
-      /* Timeline — tighter padding */
-      .timeline { padding-left: 32px; }
+      .timeline  { padding-left: 32px; }
     }
   </style>
 </head>
@@ -1214,6 +1199,25 @@
 
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 })();
+
+/* -- THUMBNAIL CLICK  =  play video (same as ▶ button) -- */
+document.addEventListener('click', function (e) {
+  /* Only care about clicks inside a .project-media strip */
+  var media = e.target.closest('.project-media');
+  if (!media) return;
+
+  /* Play button already handles itself — don't double-fire */
+  if (e.target.closest('.play-btn')) return;
+
+  /* Cards with no video (no play btn) open the GitHub link normally */
+  var btn = media.querySelector('.play-btn');
+  if (!btn) return;
+
+  /* Has a video — open it, block the card link */
+  e.preventDefault();
+  e.stopPropagation();
+  openModal(btn.dataset.src, btn.dataset.type);
+}, true /* capture phase — intercepts before the <a> fires */);
 
 /* -- THREE.JS ANIMATED BACKGROUND -- */
 (function () {
